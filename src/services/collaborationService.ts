@@ -1,7 +1,7 @@
 export interface CollaborationUser {
   id: string;
   username: string;
-  role: 'admin' | 'editor' | 'viewer';
+  role: 'owner' | 'admin' | 'editor' | 'viewer';
   avatar?: string;
   color: string;
 }

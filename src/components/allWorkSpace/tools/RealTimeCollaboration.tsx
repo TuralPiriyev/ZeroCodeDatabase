@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Users, Send, UserPlus, Copy, Check, AlertCircle, 
-  Crown, Shield, Eye, Edit, Database, Loader, X,
+  Crown, Eye, Edit, Database, Loader, X,
   Wifi, WifiOff, RefreshCw
 } from 'lucide-react';
 import { useSubscription } from '../../../context/SubscriptionContext';
@@ -9,7 +9,9 @@ import { useDatabase } from '../../../context/DatabaseContext';
 import { usePortfolio } from '../../../context/PortfolioContext';
 import { collaborationService } from '../../../services/collaborationService';
 import CollaborationStatus from './CollaborationStatus';
+import WorkspaceManager from '../workspace/WorkspaceManager.tsx';
 import { v4 as uuidv4 } from 'uuid';
+import { mongoService } from '../../../services/mongoService';
 
 interface TeamMember {
   id: string;
@@ -29,11 +31,11 @@ interface DatabaseOption {
 
 const RealTimeCollaboration: React.FC = () => {
   const { canUseFeature, setShowUpgradeModal, setUpgradeReason } = useSubscription();
-  const { currentSchema, importSchema } = useDatabase();
+  const { currentSchema, importSchema, inviteToWorkspace, acceptWorkspaceInvitation } = useDatabase();
   const { portfolios } = usePortfolio();
   
   // State management
-  const [activeTab, setActiveTab] = useState<'send' | 'accept' | 'members'>('send');
+  const [activeTab, setActiveTab] = useState<'workspace' | 'send' | 'accept' | 'members'>('workspace');
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   
@@ -298,7 +300,7 @@ const RealTimeCollaboration: React.FC = () => {
       
       let success = false;
       try {
-        success = await currentSchema.acceptWorkspaceInvitation(joinCode.trim());
+        success = await acceptWorkspaceInvitation(joinCode.trim());
         console.log('✅ Invitation acceptance result:', success);
       } catch (error) {
         console.warn('⚠️ Invitation acceptance failed, trying fallback:', error);
@@ -313,12 +315,7 @@ const RealTimeCollaboration: React.FC = () => {
           joinedAt: new Date()
         };
         
-        setCurrentSchema(prev => ({
-          ...prev,
-          members: [...prev.members, newMember],
-          isShared: true,
-          updatedAt: new Date()
-        }));
+        console.log('Using fallback acceptance for development');
       }
       
       if (success) {
@@ -443,6 +440,7 @@ const RealTimeCollaboration: React.FC = () => {
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="flex" aria-label="Collaboration tabs">
           {[
+            { id: 'workspace', name: 'Workspace', icon: Users },
             { id: 'send', name: 'Send Invitation', icon: Send },
             { id: 'accept', name: 'Accept Invitation', icon: UserPlus },
             { id: 'members', name: 'Team Members', icon: Users }
@@ -470,6 +468,11 @@ const RealTimeCollaboration: React.FC = () => {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-4">
+        {/* Workspace Management Tab */}
+        {activeTab === 'workspace' && (
+          <WorkspaceManager workspaceId={currentSchema.id} />
+        )}
+
         {/* Send Invitation Tab */}
         {activeTab === 'send' && (
           <div className="space-y-6">
