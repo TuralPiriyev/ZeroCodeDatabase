@@ -33,7 +33,7 @@ const RealTimeCollaboration: React.FC = () => {
   const { portfolios } = usePortfolio();
   
   // State management
-  const [activeTab, setActiveTab] = useState<'send' | 'accept' | 'members'>('send');
+  const [activeTab, setActiveTab] = useState<'workspace' | 'send' | 'accept' | 'members'>('workspace');
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   
@@ -443,6 +443,7 @@ const RealTimeCollaboration: React.FC = () => {
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="flex" aria-label="Collaboration tabs">
           {[
+            { id: 'workspace', name: 'Workspace', icon: Users },
             { id: 'send', name: 'Send Invitation', icon: Send },
             { id: 'accept', name: 'Accept Invitation', icon: UserPlus },
             { id: 'members', name: 'Team Members', icon: Users }
@@ -470,6 +471,11 @@ const RealTimeCollaboration: React.FC = () => {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-4">
+        {/* Workspace Management Tab */}
+        {activeTab === 'workspace' && (
+          <WorkspaceManager workspaceId={currentWorkspaceId} />
+        )}
+
         {/* Send Invitation Tab */}
         {activeTab === 'send' && (
           <div className="space-y-6">

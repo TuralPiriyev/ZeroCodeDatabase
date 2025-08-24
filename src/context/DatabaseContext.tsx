@@ -1208,6 +1208,8 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
     removeWorkspaceMember,
     validateUsername,
     syncWorkspaceWithMongoDB,
+    loadSharedSchemas,
+    syncSchemaToWorkspace,
     executeVisualQuery,
     executeSQL,
     saveQuery,
