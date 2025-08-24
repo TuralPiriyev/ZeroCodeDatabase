@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Users, Crown, Edit, Eye, Trash2, RefreshCw, Calendar } from 'lucide-react';
 
 interface TeamMember {

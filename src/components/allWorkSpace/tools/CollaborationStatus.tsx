@@ -3,7 +3,7 @@ import { Wifi, WifiOff, AlertCircle, Info } from 'lucide-react';
 
 interface CollaborationStatusProps {
   isConnected: boolean;
-  error?: string;
+  error?: string | null;
   showDetails?: boolean;
 }
 

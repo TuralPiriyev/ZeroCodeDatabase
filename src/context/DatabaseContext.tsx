@@ -481,48 +481,6 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
   }, [currentSchema.members]);
 
   // Original implementation as fallback
-  const acceptWorkspaceInvitationFallback = useCallback(async (joinCode: string): Promise<boolean> => {
-    // Find invitation by join code and check if it's still valid
-    const invitation = currentSchema.invitations.find(inv => 
-      inv.joinCode === joinCode.toUpperCase() && 
-      inv.status === 'pending' && 
-      new Date() <= inv.expiresAt
-    );
-
-    if (!invitation) {
-      return false;
-    }
-
-    // Mark invitation as accepted
-    setCurrentSchema(prev => ({
-      ...prev,
-      invitations: prev.invitations.map(inv =>
-        inv.joinCode === joinCode.toUpperCase() 
-          ? { ...inv, status: 'accepted' as const }
-          : inv
-      ),
-      updatedAt: new Date()
-    }));
-
-    // Add member to workspace
-    const newMember: WorkspaceMember = {
-      id: uuidv4(),
-      username: invitation.inviteeUsername,
-      role: invitation.role,
-      joinedAt: new Date()
-    };
-
-    // Add new member to workspace
-    setCurrentSchema(prev => ({
-      ...prev,
-      members: [...prev.members, newMember],
-      isShared: true,
-      updatedAt: new Date()
-    }));
-
-
-    return true;
-  }, [currentSchema.invitations]);
 
   const removeWorkspaceMember = useCallback((memberId: string) => {
     setCurrentSchema(prev => ({
@@ -550,6 +508,49 @@ export const DatabaseProvider: React.FC<DatabaseProviderProps> = ({ children }) 
     }
   }, [currentSchema]);
 
+  const loadSharedSchemas = useCallback(async (workspaceId: string) => {
+    try {
+      const sharedSchemas = await mongoService.getUserWorkspaces(workspaceId);
+      console.log('Loaded shared schemas:', sharedSchemas);
+      
+      // Load the first shared schema if available
+      if (sharedSchemas.length > 0) {
+        const firstSchema = sharedSchemas[0];
+        if (firstSchema.scripts) {
+          try {
+            const schemaData = JSON.parse(firstSchema.scripts);
+            importSchema(schemaData);
+          } catch (error) {
+            console.error('Failed to parse shared schema:', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load shared schemas:', error);
+    }
+  }, [importSchema]);
+
+  const syncSchemaToWorkspace = useCallback(async (workspaceId: string) => {
+    try {
+      // Save current schema to workspace
+      const success = await mongoService.updateWorkspace(workspaceId, {
+        schema: currentSchema,
+        lastSyncedAt: new Date()
+      });
+      
+      if (success) {
+        setCurrentSchema(prev => ({
+          ...prev,
+          lastSyncedAt: new Date()
+        }));
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Failed to sync schema to workspace:', error);
+      return false;
+    }
+  }, [currentSchema]);
   // Auto-sync workspace changes for shared workspaces
   useEffect(() => {
     if (currentSchema.isShared) {
