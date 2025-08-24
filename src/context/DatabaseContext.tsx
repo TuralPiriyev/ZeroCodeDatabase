@@ -158,6 +158,8 @@ export interface DatabaseContextType {
   removeWorkspaceMember: (memberId: string) => void;
   validateUsername: (username: string) => Promise<boolean>;
   syncWorkspaceWithMongoDB: () => Promise<void>;
+  loadSharedSchemas: (workspaceId: string) => Promise<void>;
+  syncSchemaToWorkspace: (workspaceId: string) => Promise<void>;
   
   // Query operations
   executeVisualQuery: (query: any) => Promise<any>;
