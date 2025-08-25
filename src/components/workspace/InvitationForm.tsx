@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserPlus, Loader, AlertCircle, CheckCircle } from 'lucide-react';
+import { apiService } from '../../services/apiService';
 
 interface InvitationFormProps {
   workspaceId: string;
@@ -26,38 +27,42 @@ const InvitationForm: React.FC<InvitationFormProps> = ({ workspaceId, onInviteSu
     setSuccess(null);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/workspaces/${workspaceId}/invite`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          role
-        })
+      console.log('📤 Sending invitation:', { workspaceId, username: username.trim(), role });
+      
+      const data = await apiService.post(`/workspaces/${workspaceId}/invite`, {
+        username: username.trim(),
+        role
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send invitation');
-      }
-
-      setSuccess(data.message);
+      console.log('✅ Invitation sent successfully:', data);
+      
+      setSuccess(data.message || `${username} has been invited to the workspace`);
       setUsername('');
       setRole('editor');
       
-      // Refresh team members list
-      onInviteSuccess(data.members);
+      // Update team members list with response
+      if (data.members && Array.isArray(data.members)) {
+        onInviteSuccess(data.members);
+      }
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
 
     } catch (error) {
-      console.error('Error sending invitation:', error);
-      setError(error instanceof Error ? error.message : 'Failed to send invitation');
+      console.error('❌ Error sending invitation:', error);
+      
+      let errorMessage = 'Failed to send invitation';
+      if (error instanceof Error) {
+        if (error.message.includes('HTML instead of JSON')) {
+          errorMessage = 'Server configuration error. API routes not properly configured.';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Workspace not found or API endpoint missing.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
