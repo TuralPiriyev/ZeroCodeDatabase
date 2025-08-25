@@ -40,6 +40,7 @@
     "react-router-dom": "^6.22.0",
     "react-xarrows": "^2.0.2",
     "reactflow": "^11.11.4",
+    "socket.io-client": "^4.8.1",
     "sql.js": "^1.13.0",
     "stripe": "^18.3.0",
     "tailwind": "^4.0.0",
@@ -96,10 +97,7 @@
     "@types/serve-static": "^1.15.8",
     "@types/stack-utils": "^2.0.3",
     "@types/uuid": "^9.0.8",
-<<<<<<< HEAD
     "@types/webidl-conversions": "^7.0.3",
-=======
->>>>>>> 21bf06ad8963806ea1293dcefe3211c7a3904841
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.21",
