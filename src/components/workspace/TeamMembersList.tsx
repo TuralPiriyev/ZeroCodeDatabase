@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 <<<<<<< HEAD
 import { Users, Crown, Edit, Eye, Trash2, RefreshCw, Calendar, AlertCircle } from 'lucide-react';
 =======
 import { Users, Crown, Edit, Eye, Trash2, RefreshCw, Calendar } from 'lucide-react';
 >>>>>>> 21bf06ad8963806ea1293dcefe3211c7a3904841
+=======
+import React, { useState, useEffect } from 'react';
+import { Users, Crown, Edit, Eye, Trash2, RefreshCw, Calendar, AlertCircle } from 'lucide-react';
+import { apiService } from '../../services/apiService';
+import { socketService } from '../../services/socketService';
+>>>>>>> da8785bc3f8c07b133c2d214c8cb0a4485a296d2
 
 interface TeamMember {
   username: string;
@@ -27,37 +34,74 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fix joinedAt date conversion bug
+  // Safe date conversion function
+  const safeParseDate = (dateValue: string | Date | null | undefined): Date | null => {
+    if (!dateValue) return null;
+    
+    if (dateValue instanceof Date) {
+      return isNaN(dateValue.getTime()) ? null : dateValue;
+    }
+    
+    if (typeof dateValue === 'string') {
+      const parsed = new Date(dateValue);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    
+    return null;
+  };
+
+  // Normalize members with safe date parsing
   const normalizedMembers = members.map(member => ({
     ...member,
-    joinedAt: member.joinedAt instanceof Date 
-      ? member.joinedAt 
-      : new Date(member.joinedAt)
+    joinedAt: safeParseDate(member.joinedAt)
   }));
+
+  useEffect(() => {
+    // Listen for real-time member updates
+    const handleMemberAdded = (data: any) => {
+      console.log('👋 Real-time: Member added:', data);
+      refreshMembers();
+    };
+
+    const handleMemberRemoved = (data: any) => {
+      console.log('👋 Real-time: Member removed:', data);
+      refreshMembers();
+    };
+
+    const handleMemberUpdated = (data: any) => {
+      console.log('👤 Real-time: Member updated:', data);
+      refreshMembers();
+    };
+
+    socketService.on('member_added', handleMemberAdded);
+    socketService.on('member_removed', handleMemberRemoved);
+    socketService.on('member_updated', handleMemberUpdated);
+
+    return () => {
+      socketService.off('member_added', handleMemberAdded);
+      socketService.off('member_removed', handleMemberRemoved);
+      socketService.off('member_updated', handleMemberUpdated);
+    };
+  }, [workspaceId]);
 
   const refreshMembers = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/workspaces/${workspaceId}/members`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch members');
+      console.log('🔄 Fetching workspace members for:', workspaceId);
+      const data = await apiService.get(`/workspaces/${workspaceId}/members`);
+      console.log('✅ Members fetched successfully:', data);
+      
+      if (data.members && Array.isArray(data.members)) {
+        onMembersUpdate(data.members);
+      } else {
+        console.error('Invalid members data structure:', data);
+        setError('Invalid response format from server');
       }
-
-      onMembersUpdate(data.members);
     } catch (error) {
-      console.error('Error refreshing members:', error);
-      setError(error instanceof Error ? error.message : 'Failed to refresh members');
+      console.error('❌ Error fetching members:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch members');
     } finally {
       setIsLoading(false);
     }
@@ -69,24 +113,33 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/workspaces/${workspaceId}/members/${username}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to remove member');
+      console.log('🗑️ Removing member:', username);
+      const data = await apiService.delete(`/workspaces/${workspaceId}/members/${username}`);
+      console.log('✅ Member removed successfully:', data);
+      
+      if (data.members && Array.isArray(data.members)) {
+        onMembersUpdate(data.members);
       }
-
-      onMembersUpdate(data.members);
     } catch (error) {
-      console.error('Error removing member:', error);
+      console.error('❌ Error removing member:', error);
       setError(error instanceof Error ? error.message : 'Failed to remove member');
+    }
+  };
+
+  const updateMemberRole = async (username: string, newRole: 'editor' | 'viewer') => {
+    try {
+      console.log('👤 Updating member role:', username, newRole);
+      const data = await apiService.put(`/workspaces/${workspaceId}/members/${username}`, {
+        role: newRole
+      });
+      console.log('✅ Member role updated successfully:', data);
+      
+      if (data.members && Array.isArray(data.members)) {
+        onMembersUpdate(data.members);
+      }
+    } catch (error) {
+      console.error('❌ Error updating member role:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update member role');
     }
   };
 
@@ -129,7 +182,7 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 max-h-96 overflow-y-auto">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
@@ -163,6 +216,12 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
             <span className="text-red-800 dark:text-red-200 text-sm font-medium">Error</span>
           </div>
           <p className="text-red-700 dark:text-red-300 text-sm mt-1">{error}</p>
+          <button
+            onClick={refreshMembers}
+            className="mt-2 text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition-colors duration-200"
+          >
+            Retry
+          </button>
         </div>
       )}
 
@@ -177,7 +236,9 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
           normalizedMembers.map((member, index) => {
             const isOwner = member.role === 'owner';
             const canRemove = currentUserRole === 'owner' && !isOwner;
+            const canUpdateRole = currentUserRole === 'owner' && !isOwner;
             const userColor = generateUserColor(member.username);
+            const joinedDate = member.joinedAt;
             
             return (
               <div
@@ -213,17 +274,28 @@ const TeamMembersList: React.FC<TeamMembersListProps> = ({
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <Calendar className="w-3 h-3" />
                     <span>
-                      Joined {member.joinedAt.toLocaleDateString('en-US', {
+                      Joined {joinedDate ? joinedDate.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric'
-                      })}
+                      }) : 'Unknown date'}
                     </span>
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
+                  {canUpdateRole && (
+                    <select
+                      value={member.role}
+                      onChange={(e) => updateMemberRole(member.username, e.target.value as 'editor' | 'viewer')}
+                      className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      <option value="editor">Editor</option>
+                      <option value="viewer">Viewer</option>
+                    </select>
+                  )}
+                  
                   {canRemove && (
                     <button
                       onClick={() => removeMember(member.username)}
