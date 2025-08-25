@@ -1,16 +1,7 @@
-<<<<<<< HEAD
-import React, { useState } from 'react';
-<<<<<<< HEAD
 import { Users, Crown, Edit, Eye, Trash2, RefreshCw, Calendar, AlertCircle } from 'lucide-react';
-=======
-import { Users, Crown, Edit, Eye, Trash2, RefreshCw, Calendar } from 'lucide-react';
->>>>>>> 21bf06ad8963806ea1293dcefe3211c7a3904841
-=======
 import React, { useState, useEffect } from 'react';
-import { Users, Crown, Edit, Eye, Trash2, RefreshCw, Calendar, AlertCircle } from 'lucide-react';
 import { apiService } from '../../services/apiService';
 import { socketService } from '../../services/socketService';
->>>>>>> da8785bc3f8c07b133c2d214c8cb0a4485a296d2
 
 interface TeamMember {
   username: string;

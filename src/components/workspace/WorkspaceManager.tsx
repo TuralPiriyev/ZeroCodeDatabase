@@ -3,11 +3,7 @@ import { Database, Users, Share2, Loader } from 'lucide-react';
 import { useDatabase } from '../../context/DatabaseContext';
 import { workspaceService, WorkspaceData } from '../../services/workspaceService';
 import InvitationForm from './InvitationForm';
-<<<<<<< HEAD
 import TeamMembersList from './TeamMembersList.tsx';
-=======
-import TeamMembersList from './TeamMembersList';
->>>>>>> 21bf06ad8963806ea1293dcefe3211c7a3904841
 
 interface WorkspaceManagerProps {
   workspaceId: string;
