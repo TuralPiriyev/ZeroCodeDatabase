@@ -1,3 +1,4 @@
+```javascript
 // server.cjs - Complete Express + Socket.IO + MongoDB server
 const express = require('express');
 const http = require('http');
@@ -46,7 +47,7 @@ const io = socketIo(server, {
       'http://localhost:3000',
       FRONTEND_ORIGIN
     ],
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
   },
   transports: ['websocket', 'polling']
@@ -287,12 +288,9 @@ app.set('emitToWorkspace', emitToWorkspace);
 // SMTP configuration
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || SMTP_PORT || 465,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
+  port: SMTP_PORT,
+  secure: SMTP_PORT === 465,
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
 });
 
 if (process.env.SMTP_HOST) {
@@ -384,3 +382,4 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = { app, server, io };
+```
