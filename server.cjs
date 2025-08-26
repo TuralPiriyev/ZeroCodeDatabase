@@ -285,11 +285,14 @@ const emitToWorkspace = (workspaceId, event, data) => {
 app.set('emitToWorkspace', emitToWorkspace);
 
 // SMTP configuration
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: SMTP_PORT,
-  secure: SMTP_PORT === 465,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  port: Number(process.env.SMTP_PORT) || SMTP_PORT || 465,
+  secure: Number(process.env.SMTP_PORT) === 465,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
 });
 
 if (process.env.SMTP_HOST) {
