@@ -1,3 +1,4 @@
+```javascript
 // server.cjs - Complete Express + Socket.IO + MongoDB server
 const express = require('express');
 const http = require('http');
@@ -30,8 +31,7 @@ const Member = require('./src/models/Member.cjs');
 // Configuration
 const PORT = Number(process.env.PORT) || 5000;
 const MONGO_URL = process.env.MONGO_URL;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 
-  (process.env.NODE_ENV === 'production' ? 'https://zerocodedb.online' : 'http://localhost:5173');
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 const SMTP_PORT = Number(process.env.SMTP_PORT);
 
 // Express setup
@@ -79,7 +79,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
+  console.log(\`${req.method} ${req.path} - ${new Date().toISOString()}`);
   next();
 });
 
@@ -206,7 +206,7 @@ app.post('/api/auth/register', async (req, res) => {
     const conflict = await User.findOne({ $or: [{ email }, { username }] });
     if (conflict) {
       const field = conflict.email === email ? 'Email' : 'Username';
-      return res.status(400).json({ message: `${field} already registered` });
+      return res.status(400).json({ message: \`${field} already registered` });
     }
     const hashed = await bcrypt.hash(password, 10);
     const newUser = await new User({ username, email, password: hashed }).save();
@@ -242,8 +242,8 @@ io.on('connection', (socket) => {
   console.log('🔌 Socket.IO client connected:', socket.id);
 
   socket.on('join_workspace', (workspaceId) => {
-    console.log(`🏠 Socket ${socket.id} joining workspace: ${workspaceId}`);
-    socket.join(`workspace_${workspaceId}`);
+    console.log(\`🏠 Socket ${socket.id} joining workspace: ${workspaceId}`);
+    socket.join(\`workspace_${workspaceId}`);
     
     // Track socket in workspace
     if (!workspaceRooms.has(workspaceId)) {
@@ -255,8 +255,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('leave_workspace', (workspaceId) => {
-    console.log(`🚪 Socket ${socket.id} leaving workspace: ${workspaceId}`);
-    socket.leave(`workspace_${workspaceId}`);
+    console.log(\`🚪 Socket ${socket.id} leaving workspace: ${workspaceId}`);
+    socket.leave(\`workspace_${workspaceId}`);
     
     // Remove from tracking
     if (workspaceRooms.has(workspaceId)) {
@@ -278,15 +278,15 @@ io.on('connection', (socket) => {
 
 // Helper function to emit to workspace
 const emitToWorkspace = (workspaceId, event, data) => {
-  console.log(`📡 Emitting ${event} to workspace ${workspaceId}:`, data);
-  io.to(`workspace_${workspaceId}`).emit(event, data);
+  console.log(\`📡 Emitting ${event} to workspace ${workspaceId}:`, data);
+  io.to(\`workspace_${workspaceId}`).emit(event, data);
 };
 
 // Make emitToWorkspace available to routes
 app.set('emitToWorkspace', emitToWorkspace);
 
 // SMTP configuration
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: SMTP_PORT,
   secure: SMTP_PORT === 465,
@@ -382,3 +382,4 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = { app, server, io };
+```
