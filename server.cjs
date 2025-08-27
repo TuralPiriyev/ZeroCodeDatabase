@@ -30,7 +30,8 @@ const Member = require('./src/models/Member.cjs');
 // Configuration
 const PORT = Number(process.env.PORT) || 5000;
 const MONGO_URL = process.env.MONGO_URL;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 
+  (process.env.NODE_ENV === 'production' ? 'https://zerocodedb.online' : 'http://localhost:5173');
 const SMTP_PORT = Number(process.env.SMTP_PORT);
 
 // Express setup
@@ -41,7 +42,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: [
-      'https://zerocodedb.online',
+      'https://startup-1-j563.onrender.com',
       'http://localhost:5173',
       'http://localhost:3000',
       FRONTEND_ORIGIN
@@ -58,7 +59,7 @@ app.set('io', io);
 // Enhanced CORS configuration
 app.use(cors({
   origin: [
-    'https://zerocodedb.online',
+    'https://startup-1-j563.onrender.com',
     'http://localhost:5173',
     'http://localhost:3000',
     FRONTEND_ORIGIN
