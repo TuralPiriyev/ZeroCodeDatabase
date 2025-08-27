@@ -1,4 +1,3 @@
-```javascript
 // server.cjs - Complete Express + Socket.IO + MongoDB server
 const express = require('express');
 const http = require('http');
@@ -42,7 +41,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: [
-      'https://startup-1-j563.onrender.com',
+      'https://zerocodedb.online',
       'http://localhost:5173',
       'http://localhost:3000',
       FRONTEND_ORIGIN
@@ -59,7 +58,7 @@ app.set('io', io);
 // Enhanced CORS configuration
 app.use(cors({
   origin: [
-    'https://startup-1-j563.onrender.com',
+    'https://zerocodedb.online',
     'http://localhost:5173',
     'http://localhost:3000',
     FRONTEND_ORIGIN
@@ -286,7 +285,7 @@ const emitToWorkspace = (workspaceId, event, data) => {
 app.set('emitToWorkspace', emitToWorkspace);
 
 // SMTP configuration
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   host: process.env.SMTP_HOST,
   port: SMTP_PORT,
   secure: SMTP_PORT === 465,
@@ -382,4 +381,3 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = { app, server, io };
-```

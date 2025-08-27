@@ -30,6 +30,14 @@ class SimpleWebSocketService {
     const urlPath = url.split('/').slice(-2).join('/'); // Get last 2 parts for ID
     const connectionId = `${urlPath}_${Date.now()}`;
     
+    // Live server üçün URL düzəltmə
+    let finalUrl = url;
+    if (!import.meta.env.DEV && !url.startsWith('ws://') && !url.startsWith('wss://')) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.hostname;
+      finalUrl = `${protocol}//${host}${url}`;
+    }
+    
     // Enhanced connection throttling
     const lastAttempt = this.lastConnectionAttempt.get(urlPath) || 0;
     const timeSinceLastAttempt = Date.now() - lastAttempt;
@@ -41,7 +49,7 @@ class SimpleWebSocketService {
     this.lastConnectionAttempt.set(urlPath, Date.now());
     
     // Store options for potential reconnection
-    this.connectionOptions.set(connectionId, { url, options });
+    this.connectionOptions.set(connectionId, { url: finalUrl, options });
     
     // Clean up existing connections more thoroughly
     const existingConnections = Array.from(this.connections.entries())
@@ -56,8 +64,8 @@ class SimpleWebSocketService {
     });
 
     try {
-      console.log(`🔗 Creating new WebSocket connection: ${url}`);
-      const socket = new WebSocket(url);
+      console.log(`🔗 Creating new WebSocket connection: ${finalUrl}`);
+      const socket = new WebSocket(finalUrl);
       let isStable = false;
 
       // Reset reconnect attempts for new connection
